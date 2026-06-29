@@ -5,10 +5,10 @@ import com.financetracker.finance_tracker.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,7 +18,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -27,7 +26,7 @@ public class SecurityConfig {
     @Autowired
     private UserRepository userRepository;
 
-    // Load user from DB — Spring calls this on every request
+    // Load user from DB
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository
@@ -43,30 +42,48 @@ public class SecurityConfig {
                         new UsernameNotFoundException("User not found: " + username));
     }
 
-    // Which endpoints are open vs locked
+    // SECURITY CONFIG
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // open
-                        .anyRequest().authenticated()               // locked
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .addFilterBefore(jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+            // ❌ disable CSRF for APIs
+            .csrf(csrf -> csrf.disable())
+
+            // 🔥 IMPORTANT: enable CORS (uses CorsConfig if present)
+            .cors(cors -> {})
+
+            // 🔐 API rules
+            .authorizeHttpRequests(auth -> auth
+                    // public auth APIs
+                    .requestMatchers("/api/auth/**").permitAll()
+
+                    // allow preflight requests (VERY IMPORTANT)
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                    // everything else needs JWT
+                    .anyRequest().authenticated()
+            )
+
+            // 🚫 no sessions (JWT based auth)
+            .sessionManagement(session -> session
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            // 🔐 JWT filter
+            .addFilterBefore(jwtFilter,
+                    UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // BCrypt encrypts passwords before saving to DB
+    // PASSWORD ENCODER
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // AUTH MANAGER
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
