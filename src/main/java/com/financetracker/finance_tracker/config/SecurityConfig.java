@@ -26,7 +26,6 @@ public class SecurityConfig {
     @Autowired
     private UserRepository userRepository;
 
-    // Load user from DB
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository
@@ -46,43 +45,32 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            // ❌ disable CSRF (REST APIs)
-            .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())
 
-            // 🔥 ENABLE CORS (IMPORTANT)
-            .cors(cors -> {})
+                // IMPORTANT: enable Spring CORS support
+                .cors(cors -> {})
 
-            // 🔐 AUTH RULES
-            .authorizeHttpRequests(auth -> auth
-                    // public APIs (login/register)
-                    .requestMatchers("/api/auth/**").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated()
+                )
 
-                    // allow browser preflight requests (CRITICAL)
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-                    // all other APIs need JWT
-                    .anyRequest().authenticated()
-            )
-
-            // 🚫 Stateless (JWT only)
-            .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-
-            // 🔐 JWT filter
-            .addFilterBefore(jwtFilter,
-                    UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // PASSWORD ENCODER
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // AUTH MANAGER
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
