@@ -22,7 +22,7 @@ public class CorsConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "https://your-vercel-app.vercel.app"  // 🔴 replace this
+                "https://finance-tracker-frontend-lalit2507.vercel.app"  s
         ));
 
         // Allow all headers (Authorization, Content-Type, etc.)
