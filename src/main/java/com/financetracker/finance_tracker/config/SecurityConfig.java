@@ -42,30 +42,29 @@ public class SecurityConfig {
                         new UsernameNotFoundException("User not found: " + username));
     }
 
-    // SECURITY CONFIG
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            // ❌ disable CSRF for APIs
+            // ❌ disable CSRF (REST APIs)
             .csrf(csrf -> csrf.disable())
 
-            // 🔥 IMPORTANT: enable CORS (uses CorsConfig if present)
+            // 🔥 ENABLE CORS (IMPORTANT)
             .cors(cors -> {})
 
-            // 🔐 API rules
+            // 🔐 AUTH RULES
             .authorizeHttpRequests(auth -> auth
-                    // public auth APIs
+                    // public APIs (login/register)
                     .requestMatchers("/api/auth/**").permitAll()
 
-                    // allow preflight requests (VERY IMPORTANT)
+                    // allow browser preflight requests (CRITICAL)
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                    // everything else needs JWT
+                    // all other APIs need JWT
                     .anyRequest().authenticated()
             )
 
-            // 🚫 no sessions (JWT based auth)
+            // 🚫 Stateless (JWT only)
             .sessionManagement(session -> session
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
