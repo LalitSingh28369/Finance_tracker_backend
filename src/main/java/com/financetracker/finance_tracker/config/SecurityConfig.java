@@ -57,7 +57,7 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "https://finance-tracker-frontend-lalit2507.vercel.app",
                 "https://finance-tracker-frontend-r5bp2952e-lalit2507.vercel.app",
-                "https://finance-tracker-frontend-4a2leo11d-lalit2507.vercel.app"
+                "https://finance-tracker-frontend-1qgft3e83-lalit2507.vercel.app"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -77,7 +77,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
 
-                // ✅ REAL CORS ENABLE
+                // ✅ FIXED CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
