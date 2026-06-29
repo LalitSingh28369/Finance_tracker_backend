@@ -15,26 +15,18 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // IMPORTANT: must be true if using cookies/JWT refresh tokens
         config.setAllowCredentials(true);
 
-        // ✅ Allow your frontend origins (ADD YOUR REAL VERCEL URL HERE)
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "https://finance-tracker-frontend-lalit2507.vercel.app"  s
+                "https://finance-tracker-frontend-lalit2507.vercel.app"
         ));
 
-        // Allow all headers (Authorization, Content-Type, etc.)
-        config.setAllowedHeaders(List.of("*"));
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
 
-        // Allow all HTTP methods (GET, POST, PUT, DELETE, OPTIONS)
-        config.setAllowedMethods(List.of("*"));
-
-        // Apply to all routes
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);
