@@ -16,6 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -26,6 +31,7 @@ public class SecurityConfig {
     @Autowired
     private UserRepository userRepository;
 
+    // ---------------- USER DETAILS ----------------
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository
@@ -41,14 +47,38 @@ public class SecurityConfig {
                         new UsernameNotFoundException("User not found: " + username));
     }
 
+    // ---------------- CORS CONFIG ----------------
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://finance-tracker-frontend-lalit2507.vercel.app",
+                "https://finance-tracker-frontend-r5bp2952e-lalit2507.vercel.app",
+                "https://finance-tracker-frontend-4a2leo11d-lalit2507.vercel.app"
+        ));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
+    }
+
+    // ---------------- SECURITY FILTER ----------------
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
 
-                // IMPORTANT: enable Spring CORS support
-                .cors(cors -> {})
+                // ✅ REAL CORS ENABLE
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
@@ -66,11 +96,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // ---------------- PASSWORD ENCODER ----------------
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // ---------------- AUTH MANAGER ----------------
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
