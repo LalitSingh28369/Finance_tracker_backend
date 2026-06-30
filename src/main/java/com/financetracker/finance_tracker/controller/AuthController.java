@@ -168,18 +168,19 @@ public class AuthController {
     // ─────────────────────────────────────────────
     // Helper Method
     // ─────────────────────────────────────────────
-    private void setAuthCookie(HttpServletResponse response, String token) {
+   private void setAuthCookie(HttpServletResponse response, String token) {
+    Cookie cookie = new Cookie("auth_token", token);
+    cookie.setHttpOnly(true);
+    cookie.setPath("/");
+    cookie.setMaxAge(86400);
+    cookie.setSecure(true);   // ← uncomment for HTTPS production
+    response.addCookie(cookie);
 
-        Cookie cookie = new Cookie("auth_token", token);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(86400);
-
-        // Uncomment in production
-        // cookie.setSecure(true);
-
-        response.addCookie(cookie);
-    }
+    // Also set SameSite=None for cross origin cookies
+    response.addHeader("Set-Cookie",
+        "auth_token=" + token +
+        "; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=86400");
+}
 
     // ─────────────────────────────────────────────
     // Response Wrappers
