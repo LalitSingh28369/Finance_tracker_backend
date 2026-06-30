@@ -13,34 +13,26 @@ public class CorsConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration config = new CorsConfiguration();
 
-        // ✅ FRONTEND URLs (Vercel + Local)
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "https://finance-tracker-frontend-jk71ihnan-lalit2507.vercel.app",
-                "https://finance-tracker-frontend-1qgft3e83-lalit2507.vercel.app"
+        // Allow any Vercel URL from your account + localhost
+        config.setAllowedOriginPatterns(List.of(
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "https://*.vercel.app"  // ← covers ALL your Vercel URLs!
         ));
 
-        // ✅ Allow all required methods
         config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
         ));
 
-        // ✅ Allow all headers
         config.setAllowedHeaders(List.of("*"));
-
-        // ❗ IMPORTANT for JWT cookie auth
         config.setAllowCredentials(true);
-
-        // Expose headers (optional but safe)
         config.setExposedHeaders(List.of("Authorization"));
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
+            new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
         return source;
